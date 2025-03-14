@@ -1,6 +1,12 @@
-# 安装使用
+# 下载安装
 
-下载安装PrintEase软件后启动，默认服务地址http://localhost:8000
+下载 [PrintEase-1.0.0.exe](https://github.com/herohql/printEase/raw/refs/heads/main/PrintEase-1.0.0.exe)，启动后服务地址http://localhost:8000，如果端口冲突会自动递增
+
+
+
+# DEMO
+
+浏览器打开 my-print.html ，web打印案例已经写好， 详细api文档见下方
 
 # web获取打印机列表
 
@@ -119,5 +125,5 @@ axios.get(url, { responseType: 'arraybuffer' }).then((response) => {
 
 【付费版2】 --不限制打印次数，提供源码
 
-
+联系作者主页查看微信
 

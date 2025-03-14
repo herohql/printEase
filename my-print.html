@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+
+  <body>
+   
+    <div class="seting">
+      <label for="printerSelect">选择打印机:</label>
+      <select id="printerSelect">
+        <option value="">请选择打印机</option>
+      </select>
+    
+      <label for="duplex">打印设置:</label>
+      <select id="duplex" name="duplex">
+        <option value="false">单面打印</option>
+        <option value="long">双面打印</option>
+      </select>
+    
+      <label for="paperSize">纸张类型:</label>
+      <select id="paperSize" name="paperSize">
+        <option value="A4">A4</option>
+      </select>
+    </div>
+    <br/>
+
+    <input type="file" id="fileInput" accept=".pdf, .doc, .docx, .xls, .xlsx" />
+    <button onclick="uploadPDF()">发送上传的 PDF 进行打印</button>
+
+   
+    <button onclick="urlPDF()">发送网络 PDF 进行打印</button>
+    <script>
+      let printerName = '';
+      let duplex = false //单页打印
+      let paperSize = 'A4'
+
+      fetch("http://localhost:8000/getPrintList", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log("Response:", data.data);
+         
+          // 获取下拉框元素
+          const printerSelect = document.getElementById("printerSelect");
+          // 遍历数组并为每个打印机生成一个 option
+          data.data.forEach(printer => {
+            const option = document.createElement("option");
+            option.value = printer.name;  // 设置 option 的 value 为 name
+            option.textContent = printer.name;  // 设置 option 的文本为 name
+            printerSelect.appendChild(option);  // 将 option 添加到 select 中
+          });
+          printerName = data.data.filter((e) => e.isDefault === true)[0].name;
+          console.log("printerName", printerName);
+          printerSelect.value = printerName
+        });
+
+      function uploadPDF() {
+        duplex = document.getElementById("duplex").value;
+        paperSize = document.getElementById("paperSize").value;
+        const fileInput = document.getElementById("fileInput");
+        if (!fileInput.files.length) {
+          alert("请选择 PDF 文件");
+          return;
+        }
+
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function (event) {
+          const arrayBuffer = event.target.result;
+          console.log("arrayBuffer", arrayBuffer);
+          print(arrayBuffer)
+  
+        };
+
+        reader.readAsArrayBuffer(file);
+      }
+
+      function urlPDF(){
+        duplex = document.getElementById("duplex").value;
+        paperSize = document.getElementById("paperSize").value;
+        const url = 'https://pdf-lib.js.org/assets/with_update_sections.pdf'
+        fetch(url).then(response=>{
+          return response.arrayBuffer();
+        }).then(arrayBuffer=>{
+          console.log("PDF ArrayBuffer:", arrayBuffer);
+          print(arrayBuffer)
+        })
+      }
+
+      function print(arrayBuffer){
+        fetch(`http://localhost:8000/print?printerName=${printerName}&duplex=${duplex}&paperSize=${paperSize}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/pdf",
+            },
+            body: arrayBuffer,
+          })
+            .then((response) => response.text())
+            .then((data) => {
+              alert(data);
+            })
+            .catch((error) => {
+              console.error("发送失败:", error);
+              alert("发送失败");
+            });
+      }
+    </script>
+  </body>
+</html>
